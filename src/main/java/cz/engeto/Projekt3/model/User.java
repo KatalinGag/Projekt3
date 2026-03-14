@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotBlank;
 import java.util.UUID;
 
 @Entity
+@Table(name = "users") // V databázi hledej tabulku users, tabulku user nemuzu, user je klicove slovo
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
