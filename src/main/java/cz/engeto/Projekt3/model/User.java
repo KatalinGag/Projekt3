@@ -21,8 +21,8 @@ public class User {
     @Column(nullable = false) // Pro databazi
     private String surname;
 
-    @NotBlank(message = "Person Id musí být vyplněno") // Pro Spring (validace vstupu)
-    @Size(min=12, max=12, message = "Person Id musí mít 12 znaků") // Pro Spring (validace vstupu)
+    @NotBlank(message = "Person ID musí být vyplněno")
+    @Size(min = 12, max = 12, message = "Person ID musí mít přesně 12 znaků")
     @Column(nullable = false, unique = true)
     private String personId;
 
@@ -78,5 +78,4 @@ public class User {
             this.uuid = UUID.randomUUID().toString();
         }
     }
-
 }

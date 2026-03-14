@@ -33,56 +33,75 @@ public class UserServiceTest {
         testUser = new User();
         testUser.setName("Jana");
         testUser.setSurname("Pokusná");
+        testUser.setPersonId("ID_ZE_SOUB_12");
     }
 
     // --- TESTY PRO INSERT (POST) ---
-
     @Test
     @DisplayName("1. Uložení: Uživatel musí dostat vygenerované ID")
     void SaveUserTest_Id() {
-        User saved = userService.saveUser(testUser);
-        assertThat(saved.getId()).isPositive();
+        User newUser = userService.saveUser(testUser);
+        assertThat(newUser.getId()).isPositive();
     }
 
     @Test
     @DisplayName("2. Uložení: Uživatel musí mít načtené PersonId")
     void saveUserTest_PersonId() {
-        User saved = userService.saveUser(testUser);
-        assertThat(saved.getPersonId()).as("PersonId ze souboru").isNotNull();
+        User newUser = userService.saveUser(testUser);
+        assertThat(newUser.getPersonId()).as("PersonId ze souboru").isNotNull();
     }
 
     @Test
     @DisplayName("3. Uložení: Uživatel musí mít načtené UUID")
     void saveUserTest_UUID() {
-        User saved = userService.saveUser(testUser);
-        assertThat(saved.getUuid()).as("Generované UUID").isNotNull();
+        User newUser = userService.saveUser(testUser);
+        assertThat(newUser.getUuid()).as("Generované UUID").isNotNull();
     }
 
     @Test
     @DisplayName("4. Uložení: Jméno se musí správně uložit do DB")
     void saveUserTest_Name() {
-        User saved = userService.saveUser(testUser);
-        assertThat(saved.getName()).isEqualTo("Jana");
+        User newUser = userService.saveUser(testUser);
+        assertThat(newUser.getName()).isEqualTo("Jana");
     }
 
     @Test
     @DisplayName("5. Uložení: Příjmení se musí správně uložit do DB")
     void saveUserTest_Surname() {
-        User saved = userService.saveUser(testUser);
-        assertThat(saved.getSurname()).isEqualTo("Pokusná");
+        User newUser = userService.saveUser(testUser);
+        assertThat(newUser.getSurname()).isEqualTo("Pokusná");
+    }
+
+    @Test
+    @DisplayName("6. Validace: Vyhodí chybu, pokud personnID není v souboru")
+    void saveUserTest_PersonID() {
+        // Připravíme uživatele s personID, které v není souboru
+        boolean isError = false;
+        testUser.setPersonId("PERSON_ID111");
+
+        // Zkusím ulozit to chybne PERSON_ID111 a chyba bude, jestli to projde
+        try {
+            userService.saveUser(testUser); // zkusim ulozit spatne id
+
+        } catch (RuntimeException ex) {
+            isError = true;
+            // Tady zachytíme regulernu tu konkretni chybu
+            assertThat(ex.getMessage()).contains("není v seznamu povolených");
+        }
+        assertThat(isError).as("Test selhal, protože se nevyhodila žádná chyba!").isTrue();
     }
 
 
     // --- TESTY PRO SELECT (GET) ---
 
     @Test
-    @DisplayName("6. Select: Vyhodí chybu, pokud ID neexistuje")
+    @DisplayName("7. Select: Vyhodí chybu, pokud ID neexistuje")
     void getUserTest_ID() {
         assertThrows(RuntimeException.class, () -> userService.getUserById(9999));
     }
 
     @Test
-    @DisplayName("7. Select: Musí vrátit seznam DTO, pokud v DB existuje uživatel")
+    @DisplayName("8. Select: Musí vrátit seznam DTO, pokud v DB existuje uživatel")
     void getUserTest_AllDTO() {
         userService.saveUser(testUser); // Uložíme pro účely tohoto testu
 
@@ -95,51 +114,52 @@ public class UserServiceTest {
     // --- TESTY PRO UPDATE (PUT) ---
 
     @Test
-    @DisplayName("8. Update: Změní jméno uživatele")
+    @DisplayName("9. Update: Změní jméno uživatele")
     void updateUserTest_Name() {
-        User saved = userService.saveUser(testUser);
+        User newUser = userService.saveUser(testUser);
 
         User updateUser = new User();
-        updateUser.setId(saved.getId());
+        updateUser.setId(newUser.getId());
         updateUser.setName("Zmenene_Jmeno");
 
-        User updated = userService.updateUser(updateUser);
-        assertThat(updated.getName()).isEqualTo("Zmenene_Jmeno");
+        User user = userService.updateUser(updateUser);
+        assertThat(user.getName()).isEqualTo("Zmenene_Jmeno");
     }
 
-
     @Test
-    @DisplayName("9. Update: Změní přijmení uživatele")
+    @DisplayName("10. Update: Změní přijmení uživatele")
     void updateUserTest_Surname() {
-        User saved = userService.saveUser(testUser);
+        User newUser = userService.saveUser(testUser);
 
         User updateUser = new User();
-        updateUser.setId(saved.getId());
+        updateUser.setId(newUser.getId());
         updateUser.setSurname("Zmenene_Prijmeni");
 
-        User updated = userService.updateUser(updateUser);
-        assertThat(updated.getSurname()).isEqualTo("Zmenene_Prijmeni");
+        User user = userService.updateUser(updateUser);
+        assertThat(user.getSurname()).isEqualTo("Zmenene_Prijmeni");
     }
 
 
     @Test
-    @DisplayName("10. Update: Nesmí dovolit změnu PersonId")
-    void updateUserTest_PersonId() {
-        User saved = userService.saveUser(testUser);
-        String originalPersonId = saved.getPersonId();
+    @DisplayName("11. Update: Změna PersonId na posleni platne personID ze souboru")
+    void updateUserTest_PersonId_Valid() {
+        User newUser = userService.saveUser(testUser);
 
         User updateUser = new User();
-        updateUser.setId(saved.getId());
-        updateUser.setPersonId("testovaci_ID");
+        updateUser.setId(newUser.getId());
+        updateUser.setName(newUser.getName());
+        updateUser.setSurname(newUser.getSurname());
 
-        User updated = userService.updateUser(updateUser);
+        // Změníme personID na posledni personID ze souboru
+        updateUser.setPersonId("mY6sT1jA3cLz");
 
-        assertThat(updated.getPersonId()).isEqualTo(originalPersonId);
+        User user = userService.updateUser(updateUser);
+        assertThat(user.getPersonId()).isEqualTo("mY6sT1jA3cLz");
     }
 
 
     @Test
-    @DisplayName("11. Update: Nesmí dovolit změnu UUID")
+    @DisplayName("12. Update: Nesmí dovolit změnu UUID")
     void updateUserTest_UUID() {
         User saved = userService.saveUser(testUser);
         String originalUuid = saved.getUuid();
@@ -148,16 +168,16 @@ public class UserServiceTest {
         updateUser.setId(saved.getId());
         updateUser.setUuid("testovaci_UUID");
 
-        User updated = userService.updateUser(updateUser);
+        User user = userService.updateUser(updateUser);
 
-        assertThat(updated.getUuid()).isEqualTo(originalUuid);
+        assertThat(user.getUuid()).isEqualTo(originalUuid);
     }
 
 
     // --- TESTY PRO DELETE ---
 
     @Test
-    @DisplayName("12. Delete: Po smazání uživatel nesmí existovat v DB")
+    @DisplayName("13. Delete: Po smazání uživatel nesmí existovat v DB")
     void deleteUserTest() {
         User saved = userService.saveUser(testUser);
         int id = saved.getId();
@@ -166,4 +186,5 @@ public class UserServiceTest {
 
         assertThat(userRepository.existsById(id)).isFalse();
     }
+
 }
