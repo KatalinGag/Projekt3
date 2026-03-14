@@ -2,6 +2,7 @@ package cz.engeto.Projekt3.model;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 
 import java.util.UUID;
 
@@ -20,6 +21,8 @@ public class User {
     @Column(nullable = false) // Pro databazi
     private String surname;
 
+    @NotBlank(message = "Person Id musí být vyplněno") // Pro Spring (validace vstupu)
+    @Size(min=12, max=12, message = "Person Id musí mít 12 znaků") // Pro Spring (validace vstupu)
     @Column(nullable = false, unique = true)
     private String personId;
 

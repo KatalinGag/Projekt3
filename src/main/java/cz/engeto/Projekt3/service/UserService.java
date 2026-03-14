@@ -28,7 +28,7 @@ public class UserService {
         this.userRepository = userRepository;
     }
 
-    // 1. Založení nového uživatele s automatickým přidělením PersonID ze souboru
+    // 1. Založení nového uživatele
     public User saveUser(User user) {
         // Načtu seznam všech ID ze souboru
         List<String> allIdsFromFile = loadPersonIdsFromFile();
