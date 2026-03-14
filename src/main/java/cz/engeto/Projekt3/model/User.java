@@ -1,6 +1,7 @@
 package cz.engeto.Projekt3.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
 
 import java.util.UUID;
 
@@ -8,11 +9,14 @@ import java.util.UUID;
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int Id;
+    private int id;
 
-    @Column(nullable = false)
+    @NotBlank(message = "Jméno musí být vyplněno") // Pro Spring (validace vstupu)
+    @Column(nullable = false) // Pro databazi
     private String name;
 
+    @NotBlank(message = "Příjmení musí být vyplněno") // Pro Spring (validace vstupu)
+    @Column(nullable = false) // Pro databazi
     private String surname;
 
     @Column(nullable = false, unique = true)
@@ -24,18 +28,12 @@ public class User {
     public User() {
     }
 
-    public User(int id, String name, String personId) {
-        Id = id;
-        this.name = name;
-        this.personId = personId;
-    }
-
     public int getId() {
-        return Id;
+        return id;
     }
 
     public void setId(int id) {
-        Id = id;
+        this.id = id;
     }
 
     public String getName() {

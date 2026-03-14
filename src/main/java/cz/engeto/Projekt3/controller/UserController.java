@@ -3,6 +3,7 @@ package cz.engeto.Projekt3.controller;
 import cz.engeto.Projekt3.dto.UserShortDto;
 import cz.engeto.Projekt3.model.User;
 import cz.engeto.Projekt3.service.UserService;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -21,7 +22,7 @@ public class UserController {
 
     // 1. Založit nového uživatele: POST api/v1/users
     @PostMapping
-    public ResponseEntity<User> createUser(@RequestBody User user) {
+    public ResponseEntity<User> createUser(@Valid @RequestBody User user) {
         User newUser = userService.saveUser(user);
         return new ResponseEntity<>(newUser, HttpStatus.CREATED);
     }
@@ -55,7 +56,7 @@ public class UserController {
 
     // 4. Upravit informace o uživateli: PUT api/v1/users
     @PutMapping
-    public ResponseEntity<User> updateUser(@RequestBody User user) {
+    public ResponseEntity<User> updateUser(@Valid @RequestBody User user) {
         User newUser = userService.updateUser(user);
         return ResponseEntity.ok(newUser);
     }
