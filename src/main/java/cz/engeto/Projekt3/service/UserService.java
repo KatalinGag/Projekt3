@@ -44,11 +44,11 @@ public class UserService {
             throw new RuntimeException("Chyba: Person ID musí být vyplněno!");
         }
 
-        // Načteme si seznam povolených person ID ze souboru
+        // Načtu si seznam povolených person ID ze souboru
         List<String> listPersonId = loadPersonIdsFromFile();
 
 
-        // Zjistim, jestli bylo zadane povolenu person ID
+        // Zjistim, jestli bylo zadane povolene person ID
         if (listPersonId.contains(user.getPersonId())) {
             // Pokud uz je person ID pouzite v DB, hlasim chybu
             if (userRepository.existsByPersonId(user.getPersonId())) {

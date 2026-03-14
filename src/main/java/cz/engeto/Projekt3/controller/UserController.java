@@ -39,7 +39,7 @@ public class UserController {
         }
     }
 
-    // 3. Informace o jednom uživateli: GET api/v1/users/{id} (?detail=true)
+    // 3. Informace o jednom uživateli podle ID: GET api/v1/users/{id} (?detail=true)
     @GetMapping("/{id}")
     public ResponseEntity<?> getUserById(@PathVariable int id, @RequestParam(defaultValue = "false") boolean detail) {
         User user = userService.getUserById(id);
