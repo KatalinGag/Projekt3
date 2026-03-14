@@ -78,5 +78,4 @@ public class User {
             this.uuid = UUID.randomUUID().toString();
         }
     }
-
 }

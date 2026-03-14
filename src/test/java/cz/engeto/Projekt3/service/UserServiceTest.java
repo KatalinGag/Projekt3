@@ -37,7 +37,6 @@ public class UserServiceTest {
     }
 
     // --- TESTY PRO INSERT (POST) ---
-
     @Test
     @DisplayName("1. Uložení: Uživatel musí dostat vygenerované ID")
     void SaveUserTest_Id() {

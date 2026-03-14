@@ -138,7 +138,6 @@ public class UserService {
         }
     }
 
-
     // 4. Informace o všech uzivatelich,  detailní rozšířené
     public List<User> getAllUsersDetailed() {
         return userRepository.findAll();
@@ -148,8 +147,8 @@ public class UserService {
     public List<UserShortDto> getAllUsersBasic() {
         List<User> users = userRepository.findAll();
         List<UserShortDto> shortUsers = new ArrayList<>();
-        for (User u : users) {
-            shortUsers.add(new UserShortDto(u.getId(), u.getName(), u.getSurname()));
+        for (User user : users) {
+            shortUsers.add(new UserShortDto(user.getId(), user.getName(), user.getSurname()));
         }
         return shortUsers;
     }
