@@ -1,5 +1,6 @@
 package cz.engeto.Projekt3.controller;
 
+import cz.engeto.Projekt3.dto.UserCreateDto;
 import cz.engeto.Projekt3.dto.UserShortDto;
 import cz.engeto.Projekt3.model.User;
 import cz.engeto.Projekt3.service.UserService;
@@ -22,8 +23,8 @@ public class UserController {
 
     // 1. Založit nového uživatele: POST api/v1/users
     @PostMapping
-    public ResponseEntity<User> createUser(@Valid @RequestBody User user) {
-        User newUser = userService.saveUser(user);
+    public ResponseEntity<User> createUser(@Valid @RequestBody UserCreateDto userDto) {
+        User newUser = userService.saveUser(userDto);
         return new ResponseEntity<>(newUser, HttpStatus.CREATED);
     }
 
@@ -56,8 +57,8 @@ public class UserController {
 
     // 4. Upravit informace o uživateli: PUT api/v1/users
     @PutMapping
-    public ResponseEntity<User> updateUser(@Valid @RequestBody User user) {
-        User newUser = userService.updateUser(user);
+    public ResponseEntity<User> updateUser(@Valid @RequestBody UserShortDto userDto) {
+        User newUser = userService.updateUser(userDto);
         return ResponseEntity.ok(newUser);
     }
 

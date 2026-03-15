@@ -1,6 +1,7 @@
 package cz.engeto.Projekt3.service;
 
 
+import cz.engeto.Projekt3.dto.UserCreateDto;
 import cz.engeto.Projekt3.dto.UserShortDto;
 import cz.engeto.Projekt3.model.User;
 import cz.engeto.Projekt3.repository.UserRepository;
@@ -23,125 +24,71 @@ import java.util.stream.Collectors;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final List<String> allowedPersonIds; // Seznam načtený v paměti
     private final String FILE_PATH = "dataPersonId.txt";
 
+    // Konstruktor: Tady se všechno připraví při startu aplikace
     public UserService(UserRepository userRepository) {
         this.userRepository = userRepository;
+        this.allowedPersonIds = loadPersonIdsFromFile(); // Načteme soubor hned na začátku
     }
 
-    // 1. Vytvoreni noveho uzivatele - POST insert
-    @Transactional // transakce
-    public User saveUser(User user) {
-
-        // Kontrola, jestli jsou všechna povinná pole vyplněná
-        if (user.getName() == null || user.getName().isBlank()) {
-            throw new RuntimeException("Chyba: Jméno musí být vyplněno!");
-        }
-        if (user.getSurname() == null || user.getSurname().isBlank()) {
-            throw new RuntimeException("Chyba: Příjmení musí být vyplněno!");
-        }
-        if (user.getPersonId() == null || user.getPersonId().isBlank()) {
-            throw new RuntimeException("Chyba: Person ID musí být vyplněno!");
-        }
-
-        // Načtu si seznam povolených person ID ze souboru
-        List<String> listPersonId = loadPersonIdsFromFile();
-
-
-        // Zjistim, jestli bylo zadane povolene person ID
-        if (listPersonId.contains(user.getPersonId())) {
-            // Pokud uz je person ID pouzite v DB, hlasim chybu
-            if (userRepository.existsByPersonId(user.getPersonId())) {
-                throw new RuntimeException("Chyba: Toto ID už je obsazené!");
-            } else {
-                return userRepository.save(user);
-            }
-
-        } else {
-            // person ID nenalezeno v souboru
-            throw new RuntimeException("Chyba: ID " + user.getPersonId() + " není v seznamu povolených!");
-        }
-    }
-
-    // 2. Oprava dat PUT update
+    // 1. Vytvoření nového uživatele
     @Transactional
-    public User updateUser(User user) {
-        // Kontrola, jestli jsou v novém objektu vyplněná všechna pole
-        if (user.getName() == null || user.getName().isBlank()) {
-            throw new RuntimeException("Chyba: Jméno pro úpravu musí být vyplněno!");
-        }
-        if (user.getSurname() == null || user.getSurname().isBlank()) {
-            throw new RuntimeException("Chyba: Příjmení pro úpravu musí být vyplněno!");
-        }
-        if (user.getPersonId() == null || user.getPersonId().isBlank()) {
-            throw new RuntimeException("Chyba: Person ID pro úpravu musí být vyplněno!");
+    public User saveUser(UserCreateDto userDto) {
+        // Kontrola povoleného ID, hledáme v seznamu v paměti
+        if (!allowedPersonIds.contains(userDto.getPersonId())) {
+            throw new RuntimeException("Chyba: ID " + userDto.getPersonId() + " není v seznamu povolených!");
         }
 
-        //Najdeme uživatele v optional podle ID
-        Optional<User> optionalUser = userRepository.findById(user.getId());
-
-        if (optionalUser.isPresent()) {
-            // uzivatel nalezen
-            User user1 = optionalUser.get();
-
-            // Pokud uživatel mění person ID, musíme person ID zkontrolovat
-            if (!user1.getPersonId().equals(user.getPersonId())) {
-                List<String> listId = loadPersonIdsFromFile();
-
-                // Je nové person ID v souboru?
-                if (!listId.contains(user.getPersonId())) {
-                    throw new RuntimeException("Chyba: Nové person ID není v souboru!");
-                }
-
-                // Je uz nove person ID pouzito?
-                if (userRepository.existsByPersonId(user.getPersonId())) {
-                    throw new RuntimeException("Chyba: Nové person ID už někdo používá!");
-                }
-            }
-
-            user1.setName(user.getName());
-            user1.setSurname(user.getSurname());
-            user1.setPersonId(user.getPersonId());
-
-            return userRepository.save(user1);
-
-        } else {
-            throw new RuntimeException("Uživatel s ID " + user.getId() + " neexistuje.");
+        // Kontrola duplicity v DB
+        if (userRepository.existsByPersonId(userDto.getPersonId())) {
+            throw new RuntimeException("Chyba: ID " + userDto.getPersonId() + " je již obsazené!");
         }
+
+        User user = new User();
+        user.setName(userDto.getName());
+        user.setSurname(userDto.getSurname());
+        user.setPersonId(userDto.getPersonId());
+
+        return userRepository.save(user);
     }
 
+    // 2. Úprava dat (PUT)
+    @Transactional
+    public User updateUser(UserShortDto userDto) {
+        User user = userRepository.findById(userDto.getId())
+                .orElseThrow(() -> new RuntimeException("Uživatel s ID " + userDto.getId() + " neexistuje."));
 
-    // 3. zpracovani souboru
+        user.setName(userDto.getName());
+        user.setSurname(userDto.getSurname());
+
+        return userRepository.save(user);
+    }
+
+    // 3. Pomocná metoda pro načtení souboru (zůstává podobná, ale volá se jen jednou)
     private List<String> loadPersonIdsFromFile() {
         try {
-            // Otevřeme "cestu" k souboru v resources
             ClassPathResource resource = new ClassPathResource(FILE_PATH);
+            try (BufferedReader reader = new BufferedReader(
+                    new InputStreamReader(resource.getInputStream(), StandardCharsets.UTF_8))) {
 
-            // Připravíme si čtečku (BufferedReader)
-            BufferedReader reader = new BufferedReader(
-                    new InputStreamReader(resource.getInputStream(), StandardCharsets.UTF_8));
-
-            List<String> lines = new ArrayList<>();
-            String line;
-
-            // Čteme soubor po řádku, dokud tam něco je
-            while ((line = reader.readLine()) != null) {
-                // Ořežeme mezery a přidáme do seznamu
-                lines.add(line.trim());
+                return reader.lines()
+                        .map(String::trim)
+                        .collect(Collectors.toList());
             }
-
-            reader.close(); // Zavřeme čtečku
-            return lines;
-
         } catch (Exception e) {
-            throw new RuntimeException("Chyba: Nepodařilo se přečíst soubor s person ID.");
+            // Pokud se soubor nepodaří načíst při startu, aplikace by raději neměla ani běžet
+            throw new IllegalStateException("Kritická chyba: Nepodařilo se načíst seznam povolených ID!");
         }
     }
+
 
     // 4. Informace o všech uzivatelich,  detailní rozšířené
     public List<User> getAllUsersDetailed() {
         return userRepository.findAll();
     }
+
 
     // 5. Informace o všech uzivatelich, pouziju zkraceni DTO
     public List<UserShortDto> getAllUsersBasic() {

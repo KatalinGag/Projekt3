@@ -1,8 +1,14 @@
 package cz.engeto.Projekt3.dto;
 
+import jakarta.validation.constraints.NotBlank;
+
 public class UserShortDto {
         private int id;
+
+        @NotBlank(message = "Jméno musí být vyplněno")
         private String name;
+
+        @NotBlank(message = "Příjmení musí být vyplněno")
         private String surname;
 
         public UserShortDto() {
