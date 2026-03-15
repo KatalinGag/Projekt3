@@ -58,7 +58,7 @@ public class UserService {
     @Transactional
     public User updateUser(UserShortDto userDto) {
         User user = userRepository.findById(userDto.getId())
-                .orElseThrow(() -> new RuntimeException("Uživatel s ID " + userDto.getId() + " neexistuje."));
+                .orElseThrow(() -> new RuntimeException("Chyba: Uživatel s ID " + userDto.getId() + " neexistuje."));
 
         user.setName(userDto.getName());
         user.setSurname(userDto.getSurname());
@@ -66,7 +66,7 @@ public class UserService {
         return userRepository.save(user);
     }
 
-    // 3. Pomocná metoda pro načtení souboru (zůstává podobná, ale volá se jen jednou)
+    // 3. Metoda pro načtení souboru, volá se jen jednou)
     private List<String> loadPersonIdsFromFile() {
         try {
             ClassPathResource resource = new ClassPathResource(FILE_PATH);
@@ -79,7 +79,7 @@ public class UserService {
             }
         } catch (Exception e) {
             // Pokud se soubor nepodaří načíst při startu, aplikace by raději neměla ani běžet
-            throw new IllegalStateException("Kritická chyba: Nepodařilo se načíst seznam povolených ID!");
+            throw new IllegalStateException("Chyba: Nepodařilo se načíst seznam povolených Person ID!");
         }
     }
 
@@ -90,7 +90,7 @@ public class UserService {
     }
 
 
-    // 5. Informace o všech uzivatelich, pouziju zkraceni DTO
+    // 5. Informace o všech uzivatelich, pouziju zkraceni ShortDTO
     public List<UserShortDto> getAllUsersBasic() {
         List<User> users = userRepository.findAll();
         List<UserShortDto> shortUsers = new ArrayList<>();
@@ -106,7 +106,7 @@ public class UserService {
         if (optionalUser.isPresent()) {
             return optionalUser.get();
         } else {
-            throw new RuntimeException("Uživatel s ID " + id + " neexistuje.");
+            throw new RuntimeException("Chyba: Uživatel s ID " + id + " neexistuje.");
         }
     }
 
@@ -115,7 +115,7 @@ public class UserService {
         if (userRepository.existsById(id)) {
             userRepository.deleteById(id);
         } else {
-            throw new RuntimeException("Nelze smazat: Uživatel s ID " + id + " neexistuje.");
+            throw new RuntimeException("Chyba : Nelze smazat, uživatel s ID " + id + " neexistuje.");
         }
     }
 }
